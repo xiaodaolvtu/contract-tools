@@ -9,7 +9,8 @@ import {
   Divider,
   Input,
   Button,
-  Message
+  Message,
+  Container
 } from 'semantic-ui-react'
 import   formulas  from '../datas/formulas'
 const types = ['多单', '空单']
@@ -41,12 +42,13 @@ class AveragePriceView extends Component {
 		//this.ref1.current.clear()
 	//	this.setState({contractType:'多单',leverage:'10x',openPrice:0,closePrice:0,amount:0,currency:'btc',luquidationPrice:0})
 	}
-	checkInitialInfo = ()=>this.getLiquidationPrice()
+	checkInitialInfo = ()=>{const p = this.getLiquidationPrice();this.setState({liquidationPrice:p})}
+	checkfinalInfo = (price,count)=>{const p = this.getLiquidationPrice(price,count);this.setState({finalLiquidationPrice:p})}
 	getLiquidationPrice = (price, count)=>{
 		let liquidation, p = price||this.state.openPrice,c = count ||this.state.amount;
 		this.state.contractType ==='多单' ? liquidation = formulas.liquidation_price_long : liquidation =formulas.liquidation_price_short;
 		const result= liquidation(this.state.currency, this.state.leverage, p, c)
-		this.setState({liquidationPrice:result})
+		return result
 	}
 	updateInputs = (price, count ,index)=>{
 		console.log(price+' '+ count+' '+index);
@@ -77,7 +79,7 @@ class AveragePriceView extends Component {
 		console.log("deals:"+deals.length+' '+deals[1].price)
 		const average = formulas.average_price(currency,parseFloat(amount), deals)
 		
-		this.setState({finalPrice:average.price,finalAmout:average.count})
+		this.setState({finalPrice:average.price,finalAmount:average.count},this.checkfinalInfo(average.price,average.count))
 	}
 	
 	addInput = (index,  luquidation_price)=>{
@@ -123,23 +125,24 @@ class AveragePriceView extends Component {
 							SetCurrency = {(value)=>this.setState({currency:value})} 
 							values={currencys} 
 							defaultValue={currencys[0]}/>
-							
-							<Label style={{width:'130px',marginLeft:'4px'}}> 开仓价格: </Label>
+				    <Container>
+							<Label style={{width:'80px'}}> 开仓价格: </Label>
 							<Input 
 								size='mini' 
-								style={{marginLeft:'18px'}}
+								style={{width:'100px',marginLeft:'10px'}}
 								label={{ basic: true, content: '$' }}
 								onChange={this.setOpenPrice}
 								placeholder='0' />
 							<br/>
-							<Label style={{width:'130px',marginLeft:'4px'}}> 开仓数量: </Label>
+							<Label style={{width:'80px'}}> 开仓数量: </Label>
 							<Input 
 								size='mini' 
+								style={{width:'100px',marginLeft:'10px',marginRight:'20px'}}
 								label={{ basic: true, content: '张' }}
 								labelPosition='right'
-								style={{marginLeft:'18px'}}
 								onChange={this.setAmount}
 								placeholder='0' />
+								' '
 								<Button color='green' size='mini' style={{borderRadius:0}} content='确定' onClick={ this.checkInitialInfo } />
 							<Message info > 
 								<b>{"初始仓位信息："}</b><br/>
@@ -160,8 +163,11 @@ class AveragePriceView extends Component {
 								</p>
 								:null}
 							</Message>
+							
+							</Container>
 				    </List.Item>
 				  </List>
+				    <Container>
 				    <Button.Group >
 					    <Button onClick={this.clear}>清空</Button>
 					    <Button.Or />
@@ -170,6 +176,7 @@ class AveragePriceView extends Component {
 					  <br/>
 				{inputs.length?inputs.map((input,index)=><CheckInput index={index} addContract={(price,count,index)=>this.addContract(price,count,index)}/>):null}
 
+				    </Container>
 			</Tab.Pane>
   	  )
     }

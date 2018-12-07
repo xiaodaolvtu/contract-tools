@@ -56,7 +56,6 @@ class ResponsiveLayout extends Component {
   	  return (
 		  <div>
 		    <Container text>
-		    <Header as='last' content='Bitcoin Feature' style={style.h1} textAlign='center' />
 		      <Segment.Group>
 				<Tab
 					SetContractType={(value)=>this.SetContractType(value)} 

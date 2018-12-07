@@ -23,7 +23,7 @@ export default class CheckboxExampleRadioGroup extends Component {
 
 	    return (
 	      <MContainer style={this.props.style||null}>
-		          <Label style={{width:'130px',marginLeft:'-9px'}}>{this.props.title}: </Label>
+		          <Label style={{width:'80px'}}>{this.props.title}: </Label>
 		          {values.map((v)=><Checkbox
 		        	ref={this.ckRef} 
 		            style={firstNode}

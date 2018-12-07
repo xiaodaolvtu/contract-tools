@@ -36,11 +36,13 @@ class CheckInput extends Component {
   	  	<Segment>
   	  	<Label attached='top'>{"加仓"+(this.index+1)}</Label>
 			<Input 
-				 size='mini' 
+				style={{width:'110px'}}
+				size='mini' 
 				label={'价格'} 
 				onChange={this.setPrice}
 				placeholder={this.price||0} />
 			<Input 
+				style={{width:'70px'}}
 				size='mini' 
 				action={ <Button color='teal'  size='mini'  content='确定' onClick={ ()=>this.handleClick() } />} 
 				label={'张数'} 
