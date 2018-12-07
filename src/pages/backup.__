@@ -1,0 +1,162 @@
+import React, { Component } from 'react'
+import ContractTab from '../components/ContractTab'
+import CheckInput from '../components/CheckInput'
+import {
+  Label,
+  Segment,
+  Tab,
+  List,
+  Divider,
+  Input,
+  Button,
+  Message
+} from 'semantic-ui-react'
+import   formulas  from '../datas/formulas'
+const types = ['多单', '空单']
+const leverages = ['10x', '20x']
+const currencys = ['btc', 'ltc']
+class AveragePriceView extends Component {
+	  constructor(props) {
+	    super(props);
+	    this.ref1 = React.createRef();
+	    this.ref2 = React.createRef();
+	    this.ref3 = React.createRef();
+	  }
+	state = {contractType:'多单',leverage:'10x',openPrice:0,closePrice:0,amount:0,
+		currency:'btc',liquidationPrice:0,inputs:[],finalPrice:0,finalAmount:0,finalLiquidationPrice:0}
+	setOpenPrice= (e, { value }) => this.setState({ openPrice : value })
+	//SetCurrency= (e, { value }) => this.setState({ currency : value })
+	setProfits = (e, { value }) => this.setState({ profits : value })
+	setAmount = (e, { value }) => this.setState({ amount : value })
+	onClick = (e) => {
+		this.setState({inputs:[].concat(this.state.inputs,{})})
+	}
+	clear = ()=> {
+		this.setState({inputs:[]})
+		//this.ref1.current.clear()
+	//	this.setState({contractType:'多单',leverage:'10x',openPrice:0,closePrice:0,amount:0,currency:'btc',luquidationPrice:0})
+	}
+	checkInitialInfo = ()=>this.getLiquidationPrice()
+	getLiquidationPrice = (price, count)=>{
+		let liquidation, p = price||this.state.openPrice,c = count ||this.state.amount;
+		this.state.contractType ==='多单' ? liquidation = formulas.liquidation_price_long : liquidation =formulas.liquidation_price_short;
+		const result= liquidation(this.state.currency, this.state.leverage, p, c)
+		this.setState({liquidationPrice:result})
+	}
+	updateInputs = (price, count ,index)=>{
+		console.log(price+' '+ count+' '+index);
+		let inputs =  this.state.inputs;
+		let result = [];
+		const len = inputs.length;
+		if(len==1) {
+			if(index == 0) result = [].concat({price,count})
+		}
+		else if(len == 2){
+			if(index == 0) result = [].concat({price,count},inputs[1])
+			else result = [].concat(inputs[0],{price,count})
+		}
+		else if(index == 0) result = [].concat({price,count},inputs.slice(1,len))
+		else if(index == (len-1)) result = [].concat(inputs.slice(0,index),{price,count})
+		else result = [].concat(inputs.slice(0,index),{price,count},inputs.slice(index+1,len))
+
+		this.setState({inputs:[].concat(result)})
+		return result
+		
+	}
+	addContract = (price, count,index)=> {
+		
+		console.log('AveragePriceView:addContract'+price+' '+count+' '+index)
+		const {openPrice, amount,currency} = this.state;
+		const inputs = this.updateInputs(parseFloat(price), parseFloat(count),index);
+		const deals = [].concat({price:parseFloat(openPrice),count:parseFloat(amount)},inputs)
+		console.log("deals:"+deals.length+' '+deals[1].price)
+		const average = formulas.average_price(currency,parseFloat(amount), deals)
+		
+		this.setState({finalPrice:average.price,finalAmout:average.count})
+	}
+	
+	addInput = (index,  luquidation_price)=>{
+		return <CheckInput index={index}  price={luquidation_price}/>
+		
+	}
+	
+    render() {
+    	  let {inputs} = this.state; 
+	  	  return (
+			<Tab.Pane>
+				  <List >
+				    <List.Item >
+						<ContractTab 
+							group
+							style={{marginLeft:'-4px',paddingLeft:'0px',marginTop : "5px"}}
+							ref={this.ref1}
+							title="合约类型"
+							SetContractType = {(value)=>this.setState({contractType:value})} 
+							values={types}
+							defaultValue={types[0]}/>
+						<ContractTab 
+							group
+							style={{marginLeft:'-4px',paddingLeft:'0px',marginTop : "5px"}}
+							ref={this.ref2}
+							title="杠杆倍数"
+							SetLeverage = {(value)=>this.setState({leverage:value})} 
+							values={leverages} 
+							defaultValue={leverages[0]}/>
+						<ContractTab 
+							group
+							style={{marginLeft:'0px',paddingLeft:'0px',marginTop : "5px"}}
+							ref={this.ref3}
+							title="合约币种"
+							SetCurrency = {(value)=>this.setState({currency:value})} 
+							values={currencys} 
+							defaultValue={currencys[0]}/>
+							
+							<Label style={{width:'130px',marginLeft:'4px'}}> 开仓价格:{"("+(this.state.openPrice||0)+")"} </Label>
+							<Input 
+								style={{marginLeft:'18px'}}
+								label={{ basic: true, content: '$' }}
+								onChange={this.setOpenPrice}
+								placeholder='0' />
+							<br/>
+							<Label style={{width:'130px',marginLeft:'4px'}}> 开仓数量:{"("+(this.state.amount||0)+")"} </Label>
+							<Input 
+								label={{ basic: true, content: '张' }}
+								labelPosition='right'
+								style={{marginLeft:'18px'}}
+								onChange={this.setAmount}
+								placeholder='0' />
+								<Button color='green' style={{borderRadius:0}} content='确定' onClick={ this.checkInitialInfo } />
+							<Message info > 
+								<b>{"初始仓位信息："}</b><br/>
+								{"开仓价格："+this.state.openPrice}
+								{"  |  合约类型："+this.state.contractType}
+								{"  |  杠杆倍数："+this.state.leverage}
+								{"  |  合约币种："+this.state.currency}
+								{"  |  持仓数量："+this.state.amount}
+								{"  |  爆仓价格："+this.state.liquidationPrice}
+								{this.state.finalPrice?<p>
+									<b>{"最终仓位信息："}</b><br/>
+									{"平均价格："+this.state.finalPrice}
+									{"  |  合约类型："+this.state.contractType}
+									{"  |  杠杆倍数："+this.state.leverage}
+									{"  |  合约币种："+this.state.currency}
+									{"  |  持仓数量："+this.state.finalAmount}
+									{"  |  爆仓价格："+this.state.finalLiquidationPrice}
+								</p>
+								:null}
+								
+							</Message>
+				    </List.Item>
+				  </List>
+				    <Button.Group>
+					    <Button onClick={this.clear}>清空</Button>
+					    <Button.Or />
+					    <Button positive onClick={this.onClick}>加仓</Button>
+					  </Button.Group>
+					  {inputs.map((input,index)=><CheckInput index={index} addContract={(price,count,index)=>this.addContract(price,count,index)}/>)}
+			</Tab.Pane>
+  	  )
+    }
+}
+
+export default AveragePriceView
