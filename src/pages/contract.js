@@ -3,6 +3,7 @@ import ContractTab from '../components/ContractTab'
 import ProfitsView from './ProfitsView'
 import ClosePriceView from './ClosePriceView'
 import AveragePriceView from './AveragePriceView'
+import NoEndContractView from './NoEndContractView'
 import {
   Button,
   Container, 
@@ -44,6 +45,7 @@ const style = {
 // )
 const panes = [
   { menuItem: '撮合均价计算', render: (props) => <AveragePriceView {...props}/> },
+  { menuItem: '永续合约', render: (props) => <NoEndContractView {...props}/>  },
   { menuItem: '收益计算', render: (props) => <ProfitsView {...props}/> },
  // { menuItem: '平仓价格计算', render: (props) => <ClosePriceView {...props}/>  },
 ]

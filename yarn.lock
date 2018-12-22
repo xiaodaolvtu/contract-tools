@@ -7779,6 +7779,11 @@ react-lifecycles-compat@^3.0.4:
   resolved "https://registry.yarnpkg.com/react-lifecycles-compat/-/react-lifecycles-compat-3.0.4.tgz#4f1a273afdfc8f3488a8c516bfda78f872352362"
   integrity sha512-fBASbA6LnOU9dOU2eW7aQ8xmYBSXUIWr+UmF9b1efZBazGNO+rcXT/icdKnYm2pTwcRylVUYwW7H1PHfLekVzA==
 
+react-semantic-ui-range@^0.6.2:
+  version "0.6.2"
+  resolved "https://registry.yarnpkg.com/react-semantic-ui-range/-/react-semantic-ui-range-0.6.2.tgz#5573c602616d5fe4a6134c07bfc78a60805cf18b"
+  integrity sha512-l6eEV9jjwVT2tHf451a1wfVJC7PHRq3qMVFCSEvdzvJuaaR18K+F3aEs9xa8bHOUetRluG7rIRNZVvuxVRgA9Q==
+
 react@^16.5.1:
   version "16.6.3"
   resolved "https://registry.yarnpkg.com/react/-/react-16.6.3.tgz#25d77c91911d6bbdd23db41e70fb094cc1e0871c"

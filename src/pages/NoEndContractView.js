@@ -1,6 +1,4 @@
 import React, { Component } from 'react'
-import ContractTab from '../components/ContractTab'
-import CheckInput from '../components/CheckInput'
 import {
   Label,
   Segment,
@@ -12,30 +10,25 @@ import {
   Message,
   Container
 } from 'semantic-ui-react'
+import { Slider } from 'react-semantic-ui-range'
+import ContractTab from '../components/ContractTab'
+import CheckInput from '../components/CheckInput'
 import   formulas  from '../datas/formulas'
+
 const types = ['多单', '空单']
 const leverages = ['10x', '20x']
-const currencys = ['btc', 'ltc']
-class AveragePriceView extends Component {
-	  constructor(props) {
-	    super(props);
-	    this.ref1 = React.createRef();
-	    this.ref2 = React.createRef();
-	    this.ref3 = React.createRef();
-	  }
-	state = {contractType:'多单',leverage:'10x',openPrice:0,closePrice:0,amount:0,
+const currencys = ['btc']
+
+
+class NoEndContractView extends Component {
+    handleChange = (e) => this.setState({ leverage: e.target.value+'x' })
+	state = {contractType:'多单',leverage:2, rate : 2,openPrice:0,closePrice:0,amount:0,
 		currency:'btc',liquidationPrice:0,inputs:[],finalPrice:0,finalAmount:0,
 		finalLiquidationPrice:0,hidden:true, message:''}
 	setOpenPrice= (e, { value }) => this.setState({ openPrice : value })
 	//SetCurrency= (e, { value }) => this.setState({ currency : value })
 	setProfits = (e, { value }) => this.setState({ profits : value })
 	setAmount = (e, { value }) => this.setState({ amount : value })
-	
-	myAlert = (message) =>{
-		this.setState({hidden:false,message:message})
-		var that = this
-		setTimeout(function(){ that.setState({hidden:true,message:''}); }, 3000);
-	}
 	onClick = (e) => {
 		if(this.state.openPrice&&this.state.amount){
 			this.setState({inputs:[].concat(this.state.inputs,{})})
@@ -53,8 +46,14 @@ class AveragePriceView extends Component {
 	getLiquidationPrice = (price, count)=>{
 		let liquidation, p = price||this.state.openPrice,c = count ||this.state.amount;
 		this.state.contractType ==='多单' ? liquidation = formulas.liquidation_price_long : liquidation =formulas.liquidation_price_short;
-		const result= liquidation(this.state.currency, this.state.leverage, p, c)
+		const result= liquidation(this.state.currency, this.state.leverage, p, c,null,'noend')
 		return result
+	}
+    handleValueChange(e, {value}){
+    	const v = parseInt(value) >100?100:value
+    	this.setState({
+    	leverage: v
+    	})
 	}
 	
 	//更新最终仓位信息
@@ -94,13 +93,27 @@ class AveragePriceView extends Component {
 	
 		
 	}
+	myAlert = (message) =>{
+		this.setState({hidden:false,message:message})
+		var that = this
+		setTimeout(function(){ that.setState({hidden:true,message:''}); }, 3000);
+	}
     render() {
-    	  let {inputs} = this.state; 
-	  	  return (
+      const { leverage ,inputs} = this.state
+      const settings = { start: this.state.leverage, min:2,max:100,step:1, onChange: (value) => {
+      	this.setState({leverage:value})
+      } }
+  	  return (   
 			<Tab.Pane style={{paddingBottom:'60px'}}>
 			  {!this.state.hidden&&<Message Floating>{this.state.message}</Message>}
+			  <Segment>OK未公布太多永续细节，请小心使用！</Segment>
 				  <List >
 				    <List.Item >
+					  <Container>
+							<Label style={{width:'80px',marginRight:'20px'}}> 合约币种: </Label>
+							<div class="ui red label small">BTC</div>
+							<br/>
+						</Container>
 						<ContractTab 
 							group
 							style={{marginLeft:'-4px',paddingLeft:'0px',marginTop : "5px"}}
@@ -109,22 +122,7 @@ class AveragePriceView extends Component {
 							SetContractType = {(value)=>this.setState({contractType:value})} 
 							values={types}
 							defaultValue={types[0]}/>
-						<ContractTab 
-							group
-							style={{marginLeft:'-4px',paddingLeft:'0px',marginTop : "5px"}}
-							ref={this.ref2}
-							title="杠杆倍数"
-							SetLeverage = {(value)=>this.setState({leverage:value})} 
-							values={leverages} 
-							defaultValue={leverages[0]}/>
-						<ContractTab 
-							group
-							style={{marginLeft:'0px',paddingLeft:'0px',marginTop : "5px"}}
-							ref={this.ref3}
-							title="合约币种"
-							SetCurrency = {(value)=>this.setState({currency:value})} 
-							values={currencys} 
-							defaultValue={currencys[0]}/>
+
 				    <Container>
 							<Label style={{width:'80px'}}> 开仓价格: </Label>
 							<Input 
@@ -143,7 +141,15 @@ class AveragePriceView extends Component {
 								onChange={this.setAmount}
 								placeholder='0' />
 								' '
-								<Button color='green' size='mini' style={{borderRadius:0}} content='确定' onClick={ this.checkInitialInfo } />
+							
+							 <Segment>
+					          <h3 style={{color:'gray'}}>杠杆倍数</h3>
+					          <p>
+					              <Slider value={this.state.leverage} color="red" inverted={false} settings={settings}/>
+					            </p>
+					            <Input placeholder="请输入杠杆倍数" onChange={this.handleValueChange.bind(this)} value={this.state.leverage}/>
+					        	<Button color='green' size='mini' style={{borderRadius:0}} content='确定' onClick={ this.checkInitialInfo } />
+					        </Segment>
 							<Message info > 
 								<b>{"初始仓位信息："}</b><br/>
 								{"开仓价格："}<b style={{color:'red'}}>{this.state.openPrice}</b>
@@ -174,7 +180,7 @@ class AveragePriceView extends Component {
 					    <Button positive onClick={this.onClick}>加仓</Button>
 					  </Button.Group>
 					  <br/>
-				{inputs.length?inputs.map((input,index)=><CheckInput index={index} addContract={(price,count,index)=>this.addContract(price,count,index)}/>):null}
+				{inputs.length||0?inputs.map((input,index)=><CheckInput index={index} addContract={(price,count,index)=>this.addContract(price,count,index)}/>):null}
 
 				    </Container>
 			</Tab.Pane>
@@ -182,4 +188,4 @@ class AveragePriceView extends Component {
     }
 }
 
-export default AveragePriceView
+export default NoEndContractView

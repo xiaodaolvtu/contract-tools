@@ -39,6 +39,7 @@ const formulas ={
 			const l = lever ||10
 			const size = parseInt(ContractSize[type||'btc']);
 			const m = parseFloat((size*count)/price).toFixed(4)
+			console.log("original_margin:"+m)
 			return  m/parseInt(lever)
 		},
 		//收益计算(多)
@@ -58,19 +59,20 @@ const formulas ={
 		// 爆仓价 = 合约价值/（合约价值 / 开仓价价  - profit/持仓量 ）
 		//10倍杠杆用户，保证金的10%，即保证金率小于等于10%；
 		//20倍杠杆用户，合约账户权益小于等于保证金的20%，即保证金率小于等于20%
-		liquidation_price_long : (type, lever,  price, count, margin) => {
+		//永续合约保证金100%
+		liquidation_price_long : (type, lever,  price, count, margin, contractType) => {
 			const size = parseInt(ContractSize[type||'btc']);
-			const liquidation_proportion = 1-(parseInt(lever||10)/100);
+			const liquidation_proportion = contractType=='noend'?1:1-(parseInt(lever||10)/100);
 			const m = margin || formulas.original_margin (type, price, count,lever)
 			const liquidation_position = -m*liquidation_proportion;
 			return size/((size/price)-(liquidation_position/count))
 		},
-		liquidation_price_short : (type, lever,  price, count, margin) => {
+		liquidation_price_short : (type, lever,  price, count, margin,contractType) => {
 			const size = parseInt(ContractSize[type||'btc']);
-			const liquidation_proportion = 1-(parseInt(lever||10)/100);
+			const liquidation_proportion = contractType=='noend'?1:1-(parseInt(lever||10)/100);
 			const m = margin || formulas.original_margin (type, price, count,lever)
 			const liquidation_position = -m*liquidation_proportion;
-			
+
 			return size/((size/price)+(liquidation_position/count))
 		},
 		
